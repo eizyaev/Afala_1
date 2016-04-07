@@ -41,7 +41,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	{
         if (getcwd(pwd, sizeof(pwd)) != NULL)
         {
-            fprintf(stdout, "Current working dir: %s\n", pwd);
+            fprintf(stdout, "%s\n", pwd);
             return 0;
         }
         else

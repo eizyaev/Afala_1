@@ -21,6 +21,11 @@ char lineSize[MAX_LINE_SIZE];
 // Description: main function of smash. get command from user and calls command functions
 //**************************************************************************************
 int main(int argc, char *argv[])
+/*
+ * argc stands for "argument count" - argc contains the number of arguments passed to the program
+ * argv stands for "argument vector". A vector is a one-dimensional array,
+ * and argv is a one-dimensional array of strings
+ */
 {
     char cmdString[MAX_LINE_SIZE]; 	   
 
@@ -42,7 +47,7 @@ int main(int argc, char *argv[])
 
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
-	if (L_Fg_Cmd == NULL) 
+	if (L_Fg_Cmd == NULL) // malloc failed
 			exit (-1); 
 	L_Fg_Cmd[0] = '\0';
 	

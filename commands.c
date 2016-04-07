@@ -85,7 +85,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else // external command
 	{
- 		ExeExternal(args, cmdString);
+ //		ExeExternal(args, cmdString);
 	 	return 0;
 	}
 	if (illegal_cmd == TRUE)
@@ -101,6 +101,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
+/* 
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
 	int pID;
@@ -109,33 +110,35 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
     		case -1: 
 					// Add your code here (error)
 					
-					/* 
+					
 					your code
-					*/
+					
         	case 0 :
                 	// Child Process
                		setpgrp();
 					
 			        // Add your code here (execute an external command)
 					
-					/* 
+					 
 					your code
-					*/
+					
 			
 			default:
                 	// Add your code here
 					
-					/* 
+					 
 					your code
-					*/
+					
 	}
 }
+*/
 //**************************************************************************************
 // function name: ExeComp
 // Description: executes complicated command
 // Parameters: command string
 // Returns: 0- if complicated -1- if not
 //**************************************************************************************
+/*
 int ExeComp(char* lineSize)
 {
 	char ExtCmd[MAX_LINE_SIZE+2];
@@ -144,18 +147,20 @@ int ExeComp(char* lineSize)
     {
 		// Add your code here (execute a complicated command)
 					
-		/* 
-		your code
-		*/
+		
+		//your code
+		
 	} 
 	return -1;
 }
+*/
 //**************************************************************************************
 // function name: BgCmd
 // Description: if command is in background, insert the command to jobs
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
+/*
 int BgCmd(char* lineSize, void* jobs)
 {
 
@@ -167,11 +172,11 @@ int BgCmd(char* lineSize, void* jobs)
 		lineSize[strlen(lineSize)-2] = '\0';
 		// Add your code here (execute a in the background)
 					
-		/* 
+		
 		your code
-		*/
+		
 		
 	}
 	return -1;
 }
-
+*/

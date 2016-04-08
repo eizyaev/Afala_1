@@ -29,7 +29,7 @@ typedef struct vars
     }
 }Vars;
 
-list<Vars*> shell_vars;
+list<Vars> shell_vars;
 
 
 //********************************************
@@ -139,36 +139,39 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "set"))
 	{
-        Vars* tmp = new Vars;
+        Vars tmp;
         string arg1(args[1]);
         string arg2(args[2]);
-        tmp->key = arg1;
-        tmp->data = arg2;
+        tmp.key = arg1;
+        tmp.data = arg2;
         shell_vars.push_back(tmp);
         return 0;
 	} 
 	/*************************************************/
     else if (!strcmp(cmd, "show"))
 	{
-        string x(args[1]);
-        list<Vars*>::const_iterator i;
-        i = find(shell_vars.begin(), shell_vars.end(), x);
-        if (i == shell_vars.end())
+        list<Vars>::const_iterator i;
+        if (num_arg == 0)
         {
-            cout << "var doesnt exit" << endl;
-            return 1;
+            for ( i = shell_vars.begin() ; i != shell_vars.end() ; i++)
+                cout << (*i).key << " := " << (*i).data << endl;
+            return 0;
         }
         else
         {
-            cout << (*i)->key << " := " << (*i)->data << endl;
-            return 0;
-        }
-        for ( i = shell_vars.begin() ; i != shell_vars.end() ; i++)
-        {
-            cout << (*i)->key << " := " << (*i)->data << endl;
-        }
-        return 0;
-	} 
+            string x(args[1]);
+            i = find(shell_vars.begin(), shell_vars.end(), x);
+            if (i == shell_vars.end())
+            {
+                cout << "var doesnt exit" << endl;
+                return 1;
+            }
+            else
+            {
+                cout << (*i).key << " := " << (*i).data << endl;
+                return 0;
+            }
+	    } 
 	/*************************************************/
 else // external command
 	{

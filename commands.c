@@ -45,7 +45,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
             }
             else
             {
-                fprintf(stdout, "smash error: > none previouse directory\n");
+                fprintf(stderr, "smash error: > none previouse directory\n");
                 return 1;
             }
         else if (chdir(args[1]) == 0)
@@ -55,7 +55,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
         }
         else
         {
-            fprintf(stdout, "smash error: > \"%s\" not found\n", args[1]);
+            fprintf(stderr, "smash error: > \"%s\" not found\n", args[1]);
             return 1;
         }
 	} 

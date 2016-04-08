@@ -11,7 +11,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 {
 	char* cmd; 
 	char* args[MAX_ARG];
-	char pwd[MAX_LINE_SIZE];
+	char pwd[MAX_LINE_SIZE], prev_pwd[MAX_LINE_SIZE] = "\0";
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = FALSE; // illegal command
@@ -33,7 +33,23 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 /*************************************************/
 	if (!strcmp(cmd, "cd") ) 
 	{
-		
+        getcwd(pwd, sizeof(pwd))
+        if ((args[0] == '-') && (prev_pwd[0] != '\0'))        
+        {
+            chdir(prev_pwd);
+            strcpy(prev_pwd, pwd);
+            return 0;
+        }
+        else if (chdir(args[0]) == 0)
+        {
+            strcpy(prev_pwd, pwd);
+            return 0;
+        }
+        else
+        {
+            fprintf(stdout, "smash error: > path not found"); // TODO : fix error message
+            return 1;
+        }
 	} 
 	
 	/*************************************************/

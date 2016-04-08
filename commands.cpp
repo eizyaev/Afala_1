@@ -171,9 +171,10 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
                 cout << (*i).key << " := " << (*i).data << endl;
                 return 0;
             }
-	    } 
+	    }
+    }
 	/*************************************************/
-else // external command
+    else // external command
 	{
     //		ExeExternal(args, cmdString);
 	 	return 0;

@@ -33,7 +33,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 /*************************************************/
 	if (!strcmp(cmd, "cd") ) 
 	{
-        getcwd(pwd, sizeof(pwd))
+        getcwd(pwd, sizeof(pwd));
         if ((args[0] == '-') && (prev_pwd[0] != '\0'))        
         {
             chdir(prev_pwd);

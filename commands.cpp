@@ -1,7 +1,36 @@
 //		commands.c
 //********************************************
 #include "commands.h"
-char prev_pwd[MAX_LINE_SIZE] = ""; 
+#include <iostream>
+#include <string>
+#include <list>
+#include <algorithm>
+using namespace std;
+char prev_pwd[MAX_LINE_SIZE] = "";
+
+typedef struct vars
+{
+    string key;
+    string data;
+
+    vars(const string& strKey = "", const std::string& strData = "")
+      : key(strKey),
+        data(strData) {}
+
+    bool operator<(const vars& rhs) const
+    {
+        return key < rhs.key;
+    }
+
+    bool operator==(const vars& rhs) const
+    {
+        return key == rhs.key;
+    }
+}Vars;
+
+list<Vars*> shell_vars;
+
+
 //********************************************
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
@@ -107,9 +136,30 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
    		
 	} 
 	/*************************************************/
-	else // external command
+	else if (!strcmp(cmd, "set"))
 	{
- //		ExeExternal(args, cmdString);
+        Vars* tmp = new Vars;
+        string arg1(args[1]);
+        string arg2(args[2]);
+        tmp->key = arg1;
+        tmp->data = arg2;
+        shell_vars.push_back(tmp);
+        return 0;
+	} 
+	/*************************************************/
+    else if (!strcmp(cmd, "show"))
+	{
+        list<Vars*>::const_iterator i;
+        for ( i = shell_vars.begin() ; i != shell_vars.end() ; i++)
+        {
+            cout << (*i)->key << " := " << (*i)->data << endl;
+        }
+        return 0;
+	} 
+	/*************************************************/
+else // external command
+	{
+    //		ExeExternal(args, cmdString);
 	 	return 0;
 	}
 	if (illegal_cmd == true)

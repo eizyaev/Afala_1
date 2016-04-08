@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <algorithm>
+#include <set>
 using namespace std;
 char prev_pwd[MAX_LINE_SIZE] = "";
 
@@ -149,7 +150,19 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
     else if (!strcmp(cmd, "show"))
 	{
+        string x(args[1]);
         list<Vars*>::const_iterator i;
+        i = find(shell_vars.begin(), shell_vars.end(), x);
+        if (i == shell_vars.end())
+        {
+            cout << "var doesnt exit" << endl;
+            return 1;
+        }
+        else
+        {
+            cout << (*i)->key << " := " << (*i)->data << endl;
+            return 0;
+        }
         for ( i = shell_vars.begin() ; i != shell_vars.end() ; i++)
         {
             cout << (*i)->key << " := " << (*i)->data << endl;

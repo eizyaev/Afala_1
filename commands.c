@@ -11,7 +11,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 {
 	char* cmd; 
 	char* args[MAX_ARG];
-	char pwd[MAX_LINE_SIZE], prev_pwd[MAX_LINE_SIZE] = "\0";
+	char pwd[MAX_LINE_SIZE], prev_pwd[MAX_LINE_SIZE] = "";
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = FALSE; // illegal command
@@ -34,7 +34,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	if (!strcmp(cmd, "cd") ) 
 	{
         getcwd(pwd, sizeof(pwd));
-        if ((args[0] == '-') && (prev_pwd[0] != '\0'))        
+        if ((strcmp(args[0], "-") == 0)  && (strcmp(prev_pwd, "") == 0 ))        
         {
             chdir(prev_pwd);
             strcpy(prev_pwd, pwd);

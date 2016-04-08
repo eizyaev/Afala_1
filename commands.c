@@ -1,6 +1,7 @@
 //		commands.c
 //********************************************
 #include "commands.h"
+char prev_pwd[MAX_LINE_SIZE] = ""; 
 //********************************************
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
@@ -11,7 +12,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 {
 	char* cmd; 
 	char* args[MAX_ARG];
-	char pwd[MAX_LINE_SIZE], prev_pwd[MAX_LINE_SIZE] = "";
+	char pwd[MAX_LINE_SIZE];
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
 	bool illegal_cmd = FALSE; // illegal command
@@ -33,21 +34,28 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 /*************************************************/
 	if (!strcmp(cmd, "cd") ) 
 	{
+
         getcwd(pwd, sizeof(pwd));
-        if ((strcmp(args[0], "-") == 0)  && (strcmp(prev_pwd, "") == 0 ))        
-        {
-            chdir(prev_pwd);
-            strcpy(prev_pwd, pwd);
-            return 0;
-        }
-        else if (chdir(args[0]) == 0)
+        if ((strcmp(args[1], "-") == 0))
+            if (strcmp(prev_pwd, ""))
+            {
+                chdir(prev_pwd);
+                strcpy(prev_pwd, pwd);
+                return 0;
+            }
+            else
+            {
+                fprintf(stdout, "smash error: > none previouse directory\n");
+                return 1;
+            }
+        else if (chdir(args[1]) == 0)
         {
             strcpy(prev_pwd, pwd);
             return 0;
         }
         else
         {
-            fprintf(stdout, "smash error: > path not found"); // TODO : fix error message
+            fprintf(stdout, "smash error: > \"%s\" not found\n", args[1]);
             return 1;
         }
 	} 

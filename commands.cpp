@@ -13,9 +13,9 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	char* cmd; 
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
-	char const* delimiters = " \t\n";  
+	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
-	bool illegal_cmd = false; // illegal command
+	bool illegal_cmd = FALSE; // illegal command
     	cmd = strtok(lineSize, delimiters);
 	if (cmd == NULL)
 		return 0; 
@@ -56,7 +56,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
         else
         {
             fprintf(stderr, "smash error: > \"%s\" not found\n", args[1]);
-            return 1; //debug
+            return 1;
         }
 	} 
 	
@@ -112,7 +112,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
  //		ExeExternal(args, cmdString);
 	 	return 0;
 	}
-	if (illegal_cmd == true)
+	if (illegal_cmd == TRUE)
 	{
 		printf("smash error: > \"%s\"\n", cmdString);
 		return 1;

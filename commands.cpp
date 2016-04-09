@@ -6,6 +6,7 @@
 #include <list>
 #include <algorithm>
 #include <set>
+#include <sys/stat.h>
 using namespace std;
 char prev_pwd[MAX_LINE_SIZE] = "";
 
@@ -119,15 +120,16 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 			char pwd_helper[MAX_LINE_SIZE];
 			strcpy(pwd_helper, pwd);
 			strcat(pwd_helper, "/");
-			strcat(pwd_helper, arg[1]);
+			strcat(pwd_helper, args[1]);
 
 			if (chdir(pwd_helper) == 0)
 			{
 				chdir(pwd);
 				fprintf(stderr, "smash error: > \"%s\" - directory already exists\n", args[0]);
+                return 1;
 			}
 
-			if (mkdir(pwd, 0777) != 0)
+			if (mkdir(pwd_helper, S_IRWXU) != 0)
 			{
 				fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", args[0]);
 				return 1;

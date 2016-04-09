@@ -65,6 +65,11 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 /*************************************************/
 	if (!strcmp(cmd, "cd") ) 
 	{
+        if (num_arg == 0)
+        {
+            fprintf(stderr, "smash error: > \"%s\" not found\n", args[1]);
+            return 1;
+        }
 
         getcwd(pwd, sizeof(pwd));
         if ((strcmp(args[1], "-") == 0))
@@ -79,7 +84,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
                 fprintf(stderr, "smash error: > none previouse directory\n");
                 return 1;
             }
-        else if (chdir(args[1]) == 0)
+        else if (chdir(args[1]) == 0) 
         {
             strcpy(prev_pwd, pwd);
             return 0;
@@ -165,13 +170,24 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
    		
 	} 
 	/*************************************************/
-	else if (!strcmp(cmd, "set"))
+	else if (!strcmp(cmd, "set")) // TODO: The case that the variable exist
 	{
+        if (num_arg < 2)
+        {
+            fprintf(stderr, "smash error: > not enough arguments\n");
+            return 1;
+        }
+
         Vars tmp;
         string arg1(args[1]);
         string arg2(args[2]);
         tmp.key = arg1;
         tmp.data = arg2;
+        list<Vars>::iterator i;
+        i = find(shell_vars.begin(), shell_vars.end(), arg1);
+        if (i != shell_vars.end())
+            shell_vars.erase(i);
+
         shell_vars.push_back(tmp);
         return 0;
 	} 

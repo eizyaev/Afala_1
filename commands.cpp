@@ -129,7 +129,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
                 return 1;
 			}
 
-			if (mkdir(pwd_helper, S_IRWXU | S_IRGRP | S_IXGRP | S_IXOTH ) != 0)
+			if (mkdir(pwd_helper, S_IRWXU | S_IRGRP | S_IXGRP | S_IXOTH | S_IROTH ) != 0)
 			{
 				fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", args[0]);
 				return 1;

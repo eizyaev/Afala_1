@@ -108,7 +108,33 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "mkdir"))
 	{
- 		
+		if (num_arg == 0)
+		{
+			fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", args[0]);
+			return 1;
+		}
+		else
+		{
+			getcwd(pwd, sizeof(pwd));
+			char pwd_helper[MAX_LINE_SIZE];
+			strcpy(pwd_helper, pwd);
+			strcat(pwd_helper, "/");
+			strcat(pwd_helper, arg[1]);
+
+			if (chdir(pwd_helper) == 0)
+			{
+				chdir(pwd);
+				fprintf(stderr, "smash error: > \"%s\" - directory already exists\n", args[0]);
+			}
+
+			if (mkdir(pwd, 0777) != 0)
+			{
+				fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", args[0]);
+				return 1;
+			}
+
+			return 0;
+		}
 	}
 	/*************************************************/
 	

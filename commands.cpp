@@ -152,7 +152,9 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
 	{
-		
+        pid_t pid = getpid();
+        cout << "smash pid is " << pid << endl;    
+
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
@@ -167,7 +169,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
-   		
+        if (num_arg == 0)
+        {
+            shell_vars.clear();
+            exit(0);
+        }
+        
+        exit(0); // TODO: add support to "quit kill"
+
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "set")) 

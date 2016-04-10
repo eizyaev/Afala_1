@@ -67,7 +67,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	{
         if (num_arg == 0)
         {
-            fprintf(stderr, "smash error: > \"%s\" not found\n", args[1]);
+            fprintf(stderr, "smash error: > \"\" not found\n", args[1]);
             return 1;
         }
 
@@ -170,7 +170,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
    		
 	} 
 	/*************************************************/
-	else if (!strcmp(cmd, "set")) // TODO: The case that the variable exist
+	else if (!strcmp(cmd, "set")) 
 	{
         if (num_arg < 2)
         {
@@ -192,11 +192,34 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
         return 0;
 	} 
 	/*************************************************/
+	else if (!strcmp(cmd, "unset")) 
+	{
+        if (num_arg < 1)
+        {
+            fprintf(stderr, "smash error: > \"\" - variable not found\n"); // TODO: fix error message
+            return 1;
+        }
+
+        string arg1(args[1]);
+        list<Vars>::iterator i;
+        i = find(shell_vars.begin(), shell_vars.end(), arg1);
+        if (i != shell_vars.end())
+        {
+            shell_vars.erase(i);
+            return 0;
+        }
+        else
+        {
+            fprintf(stderr, "smash error: > \"%s\" - variable not found\n", args[1]); 
+            return 1;
+        }
+	} 
+	/*************************************************/
     else if (!strcmp(cmd, "show"))
 	{
         list<Vars>::const_iterator i;
         if (num_arg == 0)
-        {
+        {   
             for ( i = shell_vars.begin() ; i != shell_vars.end() ; i++)
                 cout << (*i).key << " := " << (*i).data << endl;
             return 0;

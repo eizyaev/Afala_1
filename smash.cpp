@@ -15,7 +15,7 @@ main file. This file contains the main function of smash
 
 char* L_Fg_Cmd;
 int job_cnt;
-list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
+list<job> *jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE]; 
 //**************************************************************************************
 // function name: main
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
  */
 {
     char cmdString[MAX_LINE_SIZE]; 	   
-
+    jobs = new list<job>;
     struct sigaction sa;
     sa.sa_handler = &handle_bg;
     sa.sa_flags = SA_RESTART;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 					// background command	
 	 	//if(!BgCmd(lineSize, jobs)) continue; 
 					// built in commands
-		ExeCmd(jobs, lineSize, cmdString);
+		ExeCmd(lineSize, cmdString);
 		
 		/* initialize for next line read*/
 		lineSize[0]='\0';

@@ -10,7 +10,7 @@
 
 void handle_bg(int signal) 
 {
-    pid_t pID = jobs.front().pid;
+    pid_t pID = jobs->front().pid;
     cout << "stoped!!!" << endl;
 	kill(pID,SIGSTOP);
 }

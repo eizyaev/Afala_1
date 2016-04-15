@@ -34,7 +34,7 @@ list<Vars> shell_vars;
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(list<int> jobs_2, char* lineSize, char* cmdString)
+int ExeCmd(char* lineSize, char* cmdString)
 {
     string tmp;
     vector<string> s_args(MAX_ARG);
@@ -300,7 +300,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
                     new_job.cmd = cmd;
                     new_job.pid = pID;
                     new_job.stat = 1;
-                    jobs.push_back(new_job);
+                    jobs->push_back(new_job);
                     waitpid(pID, &status, WUNTRACED);
 			        break;		
 					 

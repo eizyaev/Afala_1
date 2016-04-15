@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <set> // TODO: can we use this?
 using namespace std;
-extern int job_cnt;
 
 typedef struct job // TODO: add time
 {
@@ -28,12 +27,13 @@ typedef struct job // TODO: add time
 }job;
 
 
-extern list<job> jobs;
+extern list<job> *jobs;
+extern int job_cnt;
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 //int ExeComp(char* lineSize);
 //int BgCmd(char* lineSize, void* jobs);
-int ExeCmd(list<job> jobs, char* lineSize, char* cmdString);
+int ExeCmd(char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif
 

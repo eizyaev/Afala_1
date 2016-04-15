@@ -17,12 +17,23 @@
 #include <algorithm>
 #include <set> // TODO: can we use this?
 using namespace std;
+extern int job_cnt;
 
+typedef struct job // TODO: add time
+{
+    int id;
+    string cmd;
+    pid_t pid;
+    bool stat;
+}job;
+
+
+extern list<job> jobs;
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 //int ExeComp(char* lineSize);
 //int BgCmd(char* lineSize, void* jobs);
-int ExeCmd(void* jobs, char* lineSize, char* cmdString);
+int ExeCmd(list<job> jobs, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif
 

@@ -9,6 +9,7 @@
 #include <signal.h>
 
 
+void handle_bg(int signal); 
 
 #endif
 

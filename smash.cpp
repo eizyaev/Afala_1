@@ -14,7 +14,8 @@ main file. This file contains the main function of smash
 #define MAXARGS 20
 
 char* L_Fg_Cmd;
-void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
+int job_cnt;
+list<job> jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE]; 
 //**************************************************************************************
 // function name: main
@@ -29,7 +30,13 @@ int main(int argc, char *argv[])
 {
     char cmdString[MAX_LINE_SIZE]; 	   
 
-        	
+    struct sigaction sa;
+    sa.sa_handler = &handle_bg;
+    sa.sa_flags = SA_RESTART;
+    sigfillset(&sa.sa_mask);
+
+    if (sigaction(SIGTSTP, &sa, NULL) == -1)
+        perror("Error: cannot handle SIGTSTP"); 
 	//signal declaretions
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */

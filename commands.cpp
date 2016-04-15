@@ -34,7 +34,7 @@ list<Vars> shell_vars;
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(void* jobs, char* lineSize, char* cmdString)
+int ExeCmd(list<int> jobs_2, char* lineSize, char* cmdString)
 {
     string tmp;
     vector<string> s_args(MAX_ARG);
@@ -279,7 +279,10 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
  
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
-	int pID, status;
+    string cmd(cmdString);
+    job new_job;
+	pid_t pID;
+    int status;
     switch(pID = fork()) 
 	{
     		case -1: // frok failed
@@ -293,7 +296,12 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
                     break;
 					 
 			default: // Parent Process
-                    waitpid(pID, &status, 0); 
+                    new_job.id = job_cnt++;
+                    new_job.cmd = cmd;
+                    new_job.pid = pID;
+                    new_job.stat = 1;
+                    jobs.push_back(new_job);
+                    waitpid(pID, &status, WUNTRACED);
 			        break;		
 					 
 					

@@ -1,13 +1,7 @@
 //		commands.c
 //********************************************
 #include "commands.h"
-#include <iostream>
-#include <string>
-#include <vector>
-#include <list>
-#include <algorithm>
-#include <set>
-#include <sys/stat.h>
+#include <sys/stat.h> // TODO: can we use this?
 using namespace std;
 char prev_pwd[MAX_LINE_SIZE] = "";
 
@@ -266,7 +260,8 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
     else // external command
 	{
-    //		ExeExternal(args, cmdString);
+        cout << "DEBUG" << endl;
+		ExeExternal(args, cmdString);
 	 	return 0;
 	}
 	if (illegal_cmd == true)
@@ -282,37 +277,32 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-/* 
+ 
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
-	int pID;
-    	switch(pID = fork()) 
+	int pID, status;
+    switch(pID = fork()) 
 	{
     		case -1: 
 					// Add your code here (error)
 					
 					
-					your code
 					
         	case 0 :
                 	// Child Process
                		setpgrp();
-					
-			        // Add your code here (execute an external command)
-					
+                    execv(cmdString, args);
 					 
-					your code
 					
-			
+		    	
 			default:
-                	// Add your code here
-					
+                    waitpid(pID, &status, 0); 
+			break;		
 					 
-					your code
 					
 	}
 }
-*/
+
 //**************************************************************************************
 // function name: ExeComp
 // Description: executes complicated command

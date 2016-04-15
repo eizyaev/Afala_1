@@ -260,8 +260,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	/*************************************************/
     else // external command
 	{
-        cout << "DEBUG" << endl;
-		ExeExternal(args, cmdString);
+		ExeExternal(args, cmd);
 	 	return 0;
 	}
 	if (illegal_cmd == true)
@@ -283,21 +282,19 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 	int pID, status;
     switch(pID = fork()) 
 	{
-    		case -1: 
-					// Add your code here (error)
+    		case -1: // frok failed
+                fprintf(stderr, "smash error: > Failed to run the \"%s\"\n", cmdString); 
+                break;
 					
-					
-					
-        	case 0 :
-                	// Child Process
+        	case 0 : // Child Process
                		setpgrp();
-                    execv(cmdString, args);
+                    execvp(cmdString, args); // TODO: execv or execvp ?
+                    exit(1);
+                    break;
 					 
-					
-		    	
-			default:
+			default: // Parent Process
                     waitpid(pID, &status, 0); 
-			break;		
+			        break;		
 					 
 					
 	}

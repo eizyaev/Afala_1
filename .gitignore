@@ -4,6 +4,8 @@
 # Executable
 smash
 smash.exe*
+test.c
+test.exe
 
 log
 

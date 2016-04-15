@@ -3,6 +3,7 @@
 #include "commands.h"
 #include <iostream>
 #include <string>
+#include <vector>
 #include <list>
 #include <algorithm>
 #include <set>
@@ -41,6 +42,9 @@ list<Vars> shell_vars;
 //**************************************************************************************
 int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 {
+    string tmp;
+    vector<string> s_args(MAX_ARG);
+    list<Vars>::iterator it;
 	char* cmd; 
 	char* args[MAX_ARG];
 	char pwd[MAX_LINE_SIZE];
@@ -56,8 +60,21 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 		args[i] = strtok(NULL, delimiters); 
 		if (args[i] != NULL) 
 			num_arg++; 
- 
 	}
+    for (i = 1 ; i <= num_arg ; i++) // Variable to value parser
+    {
+        if (args[i][0] == '$')
+        {
+            string str(args[i]+1);
+            it = find(shell_vars.begin(), shell_vars.end(), str);
+            if (it != shell_vars.end())
+                s_args[i] = (*it).data;
+        }
+        else
+            s_args[i] = args[i];
+    }
+
+
 /*************************************************/
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
@@ -67,12 +84,12 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	{
         if (num_arg == 0)
         {
-            fprintf(stderr, "smash error: > \"\" not found\n", args[1]);
+            fprintf(stderr, "smash error: > \"\" not found\n");
             return 1;
         }
 
         getcwd(pwd, sizeof(pwd));
-        if ((strcmp(args[1], "-") == 0))
+        if (s_args[1] == "-")
             if (strcmp(prev_pwd, ""))
             {
                 chdir(prev_pwd);
@@ -84,14 +101,14 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
                 fprintf(stderr, "smash error: > none previouse directory\n");
                 return 1;
             }
-        else if (chdir(args[1]) == 0) 
+        else if (chdir(s_args[1].c_str()) == 0) 
         {
             strcpy(prev_pwd, pwd);
             return 0;
         }
         else
         {
-            fprintf(stderr, "smash error: > \"%s\" not found\n", args[1]);
+            fprintf(stderr, "smash error: > \"%s\" not found\n", s_args[1].c_str());
             return 1; 
         }
 	} 
@@ -116,7 +133,7 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 	{
 		if (num_arg == 0)
 		{
-			fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", args[0]);
+			fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", cmd);
 			return 1;
 		}
 		else
@@ -125,18 +142,18 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
 			char pwd_helper[MAX_LINE_SIZE];
 			strcpy(pwd_helper, pwd);
 			strcat(pwd_helper, "/");
-			strcat(pwd_helper, args[1]);
+			strcat(pwd_helper, s_args[1].c_str());
 
 			if (chdir(pwd_helper) == 0)
 			{
 				chdir(pwd);
-				fprintf(stderr, "smash error: > \"%s\" - directory already exists\n", args[0]);
+				fprintf(stderr, "smash error: > \"%s\" - directory already exists\n", cmd);
                 return 1;
 			}
 
 			if (mkdir(pwd_helper, S_IRWXU | S_IRGRP | S_IXGRP | S_IXOTH | S_IROTH ) != 0)
 			{
-				fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", args[0]);
+				fprintf(stderr, "smash error: > \"%s\" - cannot create directory\n", cmd);
 				return 1;
 			}
 
@@ -188,14 +205,13 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
         }
 
         Vars tmp;
-        string arg1(args[1]);
-        string arg2(args[2]);
+        string arg1(s_args[1]);
+        string arg2(s_args[2]);
         tmp.key = arg1;
         tmp.data = arg2;
-        list<Vars>::iterator i;
-        i = find(shell_vars.begin(), shell_vars.end(), arg1);
-        if (i != shell_vars.end())
-            shell_vars.erase(i);
+        it = find(shell_vars.begin(), shell_vars.end(), arg1);
+        if (it != shell_vars.end())
+            shell_vars.erase(it);
 
         shell_vars.push_back(tmp);
         return 0;
@@ -209,42 +225,40 @@ int ExeCmd(void* jobs, char* lineSize, char* cmdString)
             return 1;
         }
 
-        string arg1(args[1]);
-        list<Vars>::iterator i;
-        i = find(shell_vars.begin(), shell_vars.end(), arg1);
-        if (i != shell_vars.end())
+        string arg1(s_args[1]);
+        it = find(shell_vars.begin(), shell_vars.end(), arg1);
+        if (it != shell_vars.end())
         {
-            shell_vars.erase(i);
+            shell_vars.erase(it);
             return 0;
         }
         else
         {
-            fprintf(stderr, "smash error: > \"%s\" - variable not found\n", args[1]); 
+            fprintf(stderr, "smash error: > \"%s\" - variable not found\n", s_args[1].c_str()); 
             return 1;
         }
 	} 
 	/*************************************************/
     else if (!strcmp(cmd, "show"))
 	{
-        list<Vars>::const_iterator i;
         if (num_arg == 0)
         {   
-            for ( i = shell_vars.begin() ; i != shell_vars.end() ; i++)
-                cout << (*i).key << " := " << (*i).data << endl;
+            for ( it = shell_vars.begin() ; it != shell_vars.end() ; it++)
+                cout << (*it).key << " := " << (*it).data << endl;
             return 0;
         }
         else
         {
-            string x(args[1]);
-            i = find(shell_vars.begin(), shell_vars.end(), x);
-            if (i == shell_vars.end())
+            string x(s_args[1]);
+            it = find(shell_vars.begin(), shell_vars.end(), x);
+            if (it == shell_vars.end())
             {
                 cout << "var doesnt exit" << endl;
                 return 1;
             }
             else
             {
-                cout << (*i).key << " := " << (*i).data << endl;
+                cout << (*it).key << " := " << (*it).data << endl;
                 return 0;
             }
 	    }

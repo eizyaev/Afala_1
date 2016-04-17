@@ -23,16 +23,18 @@ typedef struct job // TODO: add time
     int id;
     string cmd;
     pid_t pid;
-    bool stat;
+    bool is_fg;
 }job;
 
 
 extern list<job> *jobs;
 extern int job_cnt;
+extern job* fg_job;
+extern job new_job;
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
-//int ExeComp(char* lineSize);
-//int BgCmd(char* lineSize, void* jobs);
+int ExeComp(char* lineSize);
+int BgCmd(char* lineSize);
 int ExeCmd(char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString);
 #endif

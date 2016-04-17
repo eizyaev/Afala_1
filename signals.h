@@ -9,7 +9,8 @@
 #include <signal.h>
 
 
-void handle_bg(int signal); 
+void signal_handle(int signal); 
+void child_handle(int signal);
 
 #endif
 

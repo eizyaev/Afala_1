@@ -27,6 +27,18 @@ typedef struct vars
 
 list<Vars> shell_vars;
 
+list<job>::iterator find_job(int num) // TODO: add declaration
+{
+    list<job>::iterator it;
+    
+    for( it = jobs->begin() ; it != jobs->end() ; it++)
+        if ((*it).id == num)
+                break;
+    return it;
+
+}
+
+
 
 //********************************************
 // function name: ExeCmd
@@ -158,24 +170,132 @@ int ExeCmd(char* lineSize, char* cmdString)
 	
 	else if (!strcmp(cmd, "jobs")) 
 	{
- 		
+        list<job>::iterator it_j = jobs->begin();
+        for (it_j = jobs->begin() ; it_j != jobs->end() ; ++it_j)
+ 	        cout << "[" << (*it_j).id << "] " << (*it_j).cmd << " " << (*it_j).pid << " " << (*it_j).is_fg << endl;	
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
 	{
         pid_t pid = getpid();
+
         cout << "smash pid is " << pid << endl;    
 
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
 	{
+        if (fg_job == NULL)
+        {
+				fprintf(stderr, "smash error: > no fg job\n");
+                return 1;
+        }
+
+        int status;
+        if (num_arg == 0)
+        {
+            fg_job->is_fg = true;
+            cout << fg_job->cmd << endl;
+	        kill(fg_job->pid, SIGCONT);
+            waitpid(fg_job->pid, &status, WUNTRACED);
+        }
+        else
+        {
+            int num  = atoi(s_args[1].c_str());
+            list<job>::iterator itr = find_job(num);
+            if (itr != jobs->end())
+            {
+                (*itr).is_fg = true;
+                cout << (*itr).cmd << endl;
+                fg_job = &(*itr);
+                kill((*itr).pid, SIGCONT);
+                waitpid((*itr).pid, &status, WUNTRACED);
+            }
+            else
+				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
+        }
+        return 0;
 		
 	} 
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
-  		
+        if (fg_job == NULL)
+        {
+				fprintf(stderr, "smash error: > no bg job\n");
+                return 1;
+        }
+
+        int status;
+        if (num_arg == 0)
+        {
+            fg_job->is_fg = true;
+            cout << fg_job->cmd << endl;
+	        kill(fg_job->pid, SIGCONT);
+            waitpid(fg_job->pid, &status, WUNTRACED);
+        }
+        else
+        {
+            int num  = atoi(s_args[1].c_str());
+            list<job>::iterator itr = find_job(num);
+            if (itr != jobs->end())
+            {
+                (*itr).is_fg = true;
+                cout << (*itr).cmd << endl;
+                fg_job = &(*itr);
+                kill((*itr).pid, SIGCONT);
+                waitpid((*itr).pid, &status, WUNTRACED);
+            }
+            else
+				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
+        }
+        return 0;
+		
+	} 
+	/*************************************************/
+	else if (!strcmp(cmd, "bg")) 
+	{
+  	    if (num_arg == 0) // TODO: to reset fg_pid?
+        {
+	        kill(fg_job->pid, SIGCONT);
+            fg_job->is_fg = false;
+            cout << jobs->back().cmd << endl;
+        }
+        else
+        {
+            int num  = atoi(s_args[1].c_str());
+            list<job>::iterator itr = find_job(num);
+            if (itr != jobs->end())
+            {
+                fg_job = &(*itr);
+                kill((*itr).pid, SIGCONT);
+                (*itr).is_fg = false;
+                cout << (*itr).cmd << endl;
+            }
+            else
+				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
+        }
+  	    if (num_arg == 0) // TODO: to reset fg_pid?
+        {
+	        kill(fg_job->pid, SIGCONT);
+            fg_job->is_fg = false;
+            cout << jobs->back().cmd << endl;
+        }
+        else
+        {
+            int num  = atoi(s_args[1].c_str());
+            list<job>::iterator itr = find_job(num);
+            if (itr != jobs->end())
+            {
+                fg_job = &(*itr);
+                kill((*itr).pid, SIGCONT);
+                (*itr).is_fg = false;
+                cout << (*itr).cmd << endl;
+            }
+            else
+				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
+        }
+        return 0;
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
@@ -280,8 +400,7 @@ int ExeCmd(char* lineSize, char* cmdString)
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
     string cmd(cmdString);
-    job new_job;
-	pid_t pID;
+	pid_t pID, ret;
     int status;
     switch(pID = fork()) 
 	{
@@ -296,12 +415,12 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
                     break;
 					 
 			default: // Parent Process
-                    new_job.id = job_cnt++;
+                    new_job.id = 0;
                     new_job.cmd = cmd;
                     new_job.pid = pID;
-                    new_job.stat = 1;
-                    jobs->push_back(new_job);
-                    waitpid(pID, &status, WUNTRACED);
+                    new_job.is_fg = 1;
+                    fg_job = &new_job;
+                    pause();
 			        break;		
 					 
 					
@@ -314,45 +433,113 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 // Parameters: command string
 // Returns: 0- if complicated -1- if not
 //**************************************************************************************
-/*
+
 int ExeComp(char* lineSize)
 {
+	pid_t pID;
+    int status;
 	char ExtCmd[MAX_LINE_SIZE+2];
 	char *args[MAX_ARG];
-    if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
+    char cmdString[MAX_LINE_SIZE];
+    if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || 
+        (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
     {
-		// Add your code here (execute a complicated command)
-					
-		
-		//your code
-		
-	} 
-	return -1;
-}
+/*
+        ExtCmd[0] = '"';
+        strcpy(ExtCmd+1,lineSize);
+        ExtCmd[strlen(lineSize)] = '"';
+        ExtCmd[strlen(lineSize) + 1] = '\0';
 */
+        strcpy(cmdString, lineSize);
+		cmdString[strlen(lineSize)-1]='\0';
+        args[0] = "csh";
+        args[1] = "-f";
+        args[2] = "-c";
+        args[3] = cmdString;
+        args[4] = NULL;
+
+
+        switch(pID = fork()) 
+	    {
+    		case -1: // frok failed
+                fprintf(stderr, "smash error: > Failed to run the \"%s\"\n", lineSize); 
+                break;
+					
+        	case 0 : // Child Process
+               		setpgrp();
+                    execvp(*args, args); // TODO: execv or execvp ?
+                    exit(0);
+                    break;
+					 
+		    default: // Parent Process
+                    new_job.id = job_cnt++;
+                    new_job.cmd = cmdString;
+                    new_job.pid = pID;
+                    new_job.is_fg = 1;
+                    jobs->push_back(new_job);
+                    fg_job = &(jobs->back());
+                    waitpid(pID, &status, WUNTRACED);
+			        break;		
+	    }
+	    return 0;
+	} 
+    return -1;
+}
+
 //**************************************************************************************
 // function name: BgCmd
 // Description: if command is in background, insert the command to jobs
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-/*
-int BgCmd(char* lineSize, void* jobs)
-{
 
-	char* Command;
+int BgCmd(char* lineSize)
+{
+    pid_t pID;
+	char* cmd;
 	char* delimiters = " \t\n";
 	char *args[MAX_ARG];
+    int num_arg = 0;
+    job new_job;
+
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
 		lineSize[strlen(lineSize)-2] = '\0';
-		// Add your code here (execute a in the background)
+        cmd = strtok(lineSize, delimiters);
+	    if (cmd == NULL)
+		    return 0; 
+   	    args[0] = cmd;
+	    for (int i=1; i<MAX_ARG; i++)
+	    {
+		    args[i] = strtok(NULL, delimiters); 
+		    if (args[i] != NULL) 
+			    num_arg++; 
+	    }
+
+        switch(pID = fork()) 
+	    {
+    		case -1: // frok failed
+                fprintf(stderr, "smash error: > Failed to run the \"%s\"\n", cmd); 
+                break;
 					
+        	case 0 : // Child Process
+               		setpgrp();
+                    execvp(cmd, args); // TODO: execv or execvp ?
+                    exit(0);
+                    break;
+					 
+			default: // Parent Process
+                    new_job.id = job_cnt++;
+                    new_job.cmd = cmd;
+                    new_job.pid = pID;
+                    new_job.is_fg = 0;
+                    jobs->push_back(new_job);
+                    fg_job = &(jobs->back());
+			        break;	
+        }
 		
-		your code
-		
-		
+	    return 0;	
 	}
 	return -1;
 }
-*/
+

@@ -6,6 +6,7 @@ smash
 smash.exe*
 test.c
 test.exe
-
+a.out
 log
-
+prog*
+signal.c

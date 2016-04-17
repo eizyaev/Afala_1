@@ -13,8 +13,9 @@ main file. This file contains the main function of smash
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 
-char* L_Fg_Cmd;
-int job_cnt;
+job new_job;
+job* fg_job = NULL;
+int job_cnt = 1;
 list<job> *jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
 char lineSize[MAX_LINE_SIZE]; 
 //**************************************************************************************
@@ -31,13 +32,18 @@ int main(int argc, char *argv[])
     char cmdString[MAX_LINE_SIZE]; 	   
     jobs = new list<job>;
     struct sigaction sa;
-    sa.sa_handler = &handle_bg;
+    sa.sa_handler = &signal_handle;
     sa.sa_flags = SA_RESTART;
     sigfillset(&sa.sa_mask);
 
     if (sigaction(SIGTSTP, &sa, NULL) == -1)
         perror("Error: cannot handle SIGTSTP"); 
-	//signal declaretions
+
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+        perror("Error: cannot handle SIGINT");
+
+    signal (SIGCHLD, &child_handle);
+    	//signal declaretions
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
 	
@@ -53,10 +59,6 @@ int main(int argc, char *argv[])
 
 
 	
-	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
-	if (L_Fg_Cmd == NULL) // malloc failed
-			exit (-1); 
-	L_Fg_Cmd[0] = '\0';
 	
     	while (1)
     	{
@@ -64,11 +66,11 @@ int main(int argc, char *argv[])
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
-					// perform a complicated Command
-		//if(!ExeComp(lineSize)) continue; 
-					// background command	
-	 	//if(!BgCmd(lineSize, jobs)) continue; 
-					// built in commands
+		
+        if(!ExeComp(lineSize)) continue; 
+
+	 	if(!BgCmd(lineSize)) continue; 
+
 		ExeCmd(lineSize, cmdString);
 		
 		/* initialize for next line read*/

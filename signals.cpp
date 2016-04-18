@@ -11,7 +11,6 @@
 void signal_handle(int signal) 
 {
     list<job>::iterator it;
-    int status;
     if (fg_job != NULL)
     {
         switch(signal)
@@ -19,6 +18,7 @@ void signal_handle(int signal)
             case (SIGTSTP):
                 cout << "SIGTSTP" << endl;
 	            kill(fg_job->pid,SIGTSTP);
+                fg_job->is_fg = false;
                 for( it = jobs->begin() ; it != jobs->end() ; it++)
                     if ((*it).pid == fg_job->pid)
                         break;
@@ -27,6 +27,7 @@ void signal_handle(int signal)
                     new_job.id = job_cnt++; 
                     jobs->push_back(new_job);
                     fg_job = &(jobs->back());
+                    new_job.id = 0;
                     cout << "Inserted to the jobs list" << endl;
                 }
 
@@ -45,21 +46,20 @@ void child_handle(int signal)
 {
     pid_t pid = waitpid(-1, NULL, WNOHANG);
     cout << "SIGCHLD PID IS:" << pid << endl;
+    if (fg_job->pid == pid)
+        fg_job = NULL;
+    if (new_job.pid == pid)
+    {
+        cout << "job " << pid << "erased" << endl;
+        new_job.id = 0;
+        new_job.cmd = "";
+        new_job.pid = 0;
+        new_job.is_fg = 0;
+    }
     while(pid > 0)
     {       
-        cout << "job " << pid << "erased" << endl;
         list<job>::iterator it;
         cout << "fg job pid: " << fg_job->pid << endl;
-        if (fg_job->pid == pid)
-            fg_job = NULL;
-        if (new_job.pid == pid)
-        {
-                    new_job.id = 0;
-                    new_job.cmd = "";
-                    new_job.pid = 0;
-                    new_job.is_fg = 0;
-
-        }
         for( it = jobs->begin() ; it != jobs->end() ; it++)
             if ((*it).pid == pid)
             {
@@ -67,7 +67,7 @@ void child_handle(int signal)
                 break;
             }
         pid = waitpid(-1, NULL, WNOHANG);
-        cout << "SIGCHLD PID IS:" << pid << endl;
+        cout << "SIGCHLD PID IS:" << pid << "Is next" << endl;
     }
 }
 

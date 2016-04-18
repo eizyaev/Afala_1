@@ -185,14 +185,14 @@ int ExeCmd(char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
 	{
-        if (fg_job == NULL) // TODO: fix case when "fg 1" doesnt work
-        {
-				fprintf(stderr, "smash error: > no fg job\n");
-                return 1;
-        }
 
         if (num_arg == 0)
         {
+            if (fg_job == NULL) // TODO: fix case when "fg 1" doesnt work
+            {
+				fprintf(stderr, "smash error: > no fg job\n");
+                return 1;
+            }
             fg_job->is_fg = true;
             cout << fg_job->cmd << endl;
 	        kill(fg_job->pid, SIGCONT);
@@ -219,15 +219,15 @@ int ExeCmd(char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "bg")) 
 	{
-        if (fg_job == NULL)
-        {
-				fprintf(stderr, "smash error: > no bg job\n");
-                return 1;
-        }
 
         if (num_arg == 0)
         {
-            fg_job->is_fg = false;
+            if (fg_job == NULL)
+            {
+				fprintf(stderr, "smash error: > no bg job\n");
+                return 1;
+            }
+            fg_job->is_fg = true;
             cout << fg_job->cmd << endl;
 	        kill(fg_job->pid, SIGCONT);
         }
@@ -237,7 +237,7 @@ int ExeCmd(char* lineSize, char* cmdString)
             list<job>::iterator itr = find_job(num);
             if (itr != jobs->end())
             {
-                (*itr).is_fg = false;
+                (*itr).is_fg = true;
                 cout << (*itr).cmd << endl;
                 fg_job = &(*itr);
                 kill((*itr).pid, SIGCONT);
@@ -387,7 +387,6 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 int ExeComp(char* lineSize)
 {
 	pid_t pID;
-    int status;
 	char ExtCmd[MAX_LINE_SIZE+2];
 	char *args[MAX_ARG];
     char cmdString[MAX_LINE_SIZE];
@@ -402,10 +401,10 @@ int ExeComp(char* lineSize)
 */
         strcpy(cmdString, lineSize);
 		cmdString[strlen(lineSize)-1]='\0';
-        args[0] = "csh";
-        args[1] = "-f";
-        args[2] = "-c";
-        args[3] = cmdString;
+        strcpy(args[0], "csh"); //TODO: should add '\0' in the end of each line?
+        strcpy(args[1], "-f");
+        strcpy(args[2], "-c");
+        strcpy(args[3], cmdString);
         args[4] = NULL;
 
 
@@ -422,13 +421,12 @@ int ExeComp(char* lineSize)
                     break;
 					 
 		    default: // Parent Process
-                    new_job.id = job_cnt++;
+                    new_job.id = 0;
                     new_job.cmd = cmdString;
                     new_job.pid = pID;
                     new_job.is_fg = 1;
-                    jobs->push_back(new_job);
-                    fg_job = &(jobs->back());
-                    waitpid(pID, &status, WUNTRACED);
+                    fg_job = &new_job;
+                    pause();
 			        break;		
 	    }
 	    return 0;
@@ -482,7 +480,7 @@ int BgCmd(char* lineSize)
                     new_job.id = job_cnt++;
                     new_job.cmd = cmd;
                     new_job.pid = pID;
-                    new_job.is_fg = 0;
+                    new_job.is_fg = 1;
                     jobs->push_back(new_job);
                     fg_job = &(jobs->back());
 			        break;	

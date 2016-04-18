@@ -22,11 +22,12 @@ void signal_handle(int signal)
                 for( it = jobs->begin() ; it != jobs->end() ; it++)
                     if ((*it).pid == fg_job->pid)
                         break;
-                if (it != jobs->end())
+                if (it == jobs->end())
                 {
                     new_job.id = job_cnt++; 
                     jobs->push_back(new_job);
                     fg_job = &(jobs->back());
+                    cout << "Inserted to the jobs list" << endl;
                 }
 
                 break;
@@ -45,14 +46,23 @@ void child_handle(int signal)
     pid_t pid = waitpid(-1, NULL, WNOHANG);
     cout << "SIGCHLD PID IS:" << pid << endl;
     while(pid > 0)
-    {        
+    {       
+        cout << "job " << pid << "erased" << endl;
         list<job>::iterator it;
-    
+        cout << "fg job pid: " << fg_job->pid << endl;
+        if (fg_job->pid == pid)
+            fg_job = NULL;
+        if (new_job.pid == pid)
+        {
+                    new_job.id = 0;
+                    new_job.cmd = "";
+                    new_job.pid = 0;
+                    new_job.is_fg = 0;
+
+        }
         for( it = jobs->begin() ; it != jobs->end() ; it++)
             if ((*it).pid == pid)
             {
-                if (fg_job == &(*it))
-                    fg_job == NULL;
                 jobs->erase(it);
                 break;
             }

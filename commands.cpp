@@ -185,19 +185,18 @@ int ExeCmd(char* lineSize, char* cmdString)
 	/*************************************************/
 	else if (!strcmp(cmd, "fg")) 
 	{
-        if (fg_job == NULL)
+        if (fg_job == NULL) // TODO: fix case when "fg 1" doesnt work
         {
 				fprintf(stderr, "smash error: > no fg job\n");
                 return 1;
         }
 
-        int status;
         if (num_arg == 0)
         {
             fg_job->is_fg = true;
             cout << fg_job->cmd << endl;
 	        kill(fg_job->pid, SIGCONT);
-            waitpid(fg_job->pid, &status, WUNTRACED);
+            pause();
         }
         else
         {
@@ -209,7 +208,7 @@ int ExeCmd(char* lineSize, char* cmdString)
                 cout << (*itr).cmd << endl;
                 fg_job = &(*itr);
                 kill((*itr).pid, SIGCONT);
-                waitpid((*itr).pid, &status, WUNTRACED);
+                pause();
             }
             else
 				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
@@ -226,13 +225,11 @@ int ExeCmd(char* lineSize, char* cmdString)
                 return 1;
         }
 
-        int status;
         if (num_arg == 0)
         {
-            fg_job->is_fg = true;
+            fg_job->is_fg = false;
             cout << fg_job->cmd << endl;
 	        kill(fg_job->pid, SIGCONT);
-            waitpid(fg_job->pid, &status, WUNTRACED);
         }
         else
         {
@@ -240,11 +237,10 @@ int ExeCmd(char* lineSize, char* cmdString)
             list<job>::iterator itr = find_job(num);
             if (itr != jobs->end())
             {
-                (*itr).is_fg = true;
+                (*itr).is_fg = false;
                 cout << (*itr).cmd << endl;
                 fg_job = &(*itr);
                 kill((*itr).pid, SIGCONT);
-                waitpid((*itr).pid, &status, WUNTRACED);
             }
             else
 				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
@@ -252,51 +248,6 @@ int ExeCmd(char* lineSize, char* cmdString)
         return 0;
 		
 	} 
-	/*************************************************/
-	else if (!strcmp(cmd, "bg")) 
-	{
-  	    if (num_arg == 0) // TODO: to reset fg_pid?
-        {
-	        kill(fg_job->pid, SIGCONT);
-            fg_job->is_fg = false;
-            cout << jobs->back().cmd << endl;
-        }
-        else
-        {
-            int num  = atoi(s_args[1].c_str());
-            list<job>::iterator itr = find_job(num);
-            if (itr != jobs->end())
-            {
-                fg_job = &(*itr);
-                kill((*itr).pid, SIGCONT);
-                (*itr).is_fg = false;
-                cout << (*itr).cmd << endl;
-            }
-            else
-				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
-        }
-  	    if (num_arg == 0) // TODO: to reset fg_pid?
-        {
-	        kill(fg_job->pid, SIGCONT);
-            fg_job->is_fg = false;
-            cout << jobs->back().cmd << endl;
-        }
-        else
-        {
-            int num  = atoi(s_args[1].c_str());
-            list<job>::iterator itr = find_job(num);
-            if (itr != jobs->end())
-            {
-                fg_job = &(*itr);
-                kill((*itr).pid, SIGCONT);
-                (*itr).is_fg = false;
-                cout << (*itr).cmd << endl;
-            }
-            else
-				fprintf(stderr, "smash error: > \"%s\" - job doesn't exist\n", cmd);
-        }
-        return 0;
-	}
 	/*************************************************/
 	else if (!strcmp(cmd, "quit"))
 	{
@@ -400,8 +351,7 @@ int ExeCmd(char* lineSize, char* cmdString)
 void ExeExternal(char *args[MAX_ARG], char* cmdString)
 {
     string cmd(cmdString);
-	pid_t pID, ret;
-    int status;
+	pid_t pID;
     switch(pID = fork()) 
 	{
     		case -1: // frok failed

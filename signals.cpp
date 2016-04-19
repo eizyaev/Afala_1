@@ -25,7 +25,8 @@ void signal_handle(int signal)
                         break;
                 if (it == jobs->end())
                 {
-                    new_job.id = job_cnt++; 
+                    new_job.id = job_cnt++;
+                    new_job.timer = time(NULL);
                     jobs->push_back(new_job);
                     fg_job = &(jobs->back());
                 }
@@ -49,15 +50,6 @@ void child_handle(int signal)
     {
         if (fg_job != NULL && fg_job->pid == pid)
             fg_job = NULL;
-        /*
-        if (new_job.pid == pid)
-        {
-            new_job.id = 0;
-            new_job.cmd = "";
-            new_job.pid = 0;
-            new_job.is_running = 0;
-        }
-        */
     }
     while(pid > 0)
     {       

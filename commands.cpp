@@ -173,7 +173,8 @@ int ExeCmd(char* lineSize, char* cmdString)
         list<job>::iterator it_j = jobs->begin();
         for (it_j = jobs->begin() ; it_j != jobs->end() ; ++it_j)
  	        cout << "[" << (*it_j).id << "] " << (*it_j).cmd << " " 
-                 << (*it_j).pid << " " << ((*it_j).is_running ? "(running)" : "(stopped)")  << endl;	
+                 << (*it_j).pid << " " << ((*it_j).is_running ? "(running)" : "(stopped)")  <<
+                 " " << time(NULL) - (*it_j).timer << " secs" << endl;	
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
@@ -269,32 +270,43 @@ int ExeCmd(char* lineSize, char* cmdString)
         if (s_args[1] == "kill")
         {
             pid_t pid;
-            list<job>::iterator it, it1;
+            job cur_job;
             time_t sec1;
-            for( it = jobs->begin() ; it != jobs->end() ; it++)
+            
+            while (jobs->empty() == false)
             {
-                pid = it->pid;
+                cur_job = jobs->back();
+                pid = cur_job.pid;
+                cout << "[" << cur_job.id << "] " << cur_job.cmd << " - Sending SIGTERM... ";
                 sec1 = time(NULL);
-	            kill(it->pid, SIGTERM);
-
-                for ( ; ;)
+	            kill(pid, SIGTERM);
+                if (jobs->back().pid != pid)
                 {
+                    cout << "Done." << endl;
+                    continue;
+                }
+                else
+                {
+                for ( ; ;)
                     if ( time(NULL) - sec1 > 5)
                     {
                         break;
                     }
                 }
-                for( it1 = jobs->begin() ; it1 != jobs->end() ; it1++)
+                if (jobs->back().pid != pid)
                 {
-                    if (pid == it1->pid)
-                    {
-	                    kill(pid, 9);
-                        if (jobs->empty())
-                            return 0;
-                        break;
-                    }
+                    cout << "Done." << endl;
+                    continue;
                 }
+                else
+                {
+                    cout << " (5 sec passed) Sending SIGKILL... Done." << endl;
+	                kill(pid, 9);
+                }
+
+
             }
+            exit(0);
         }
 
     } 
@@ -429,7 +441,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 					
         	case 0 : // Child Process
                		setpgrp();
-                    execvp(cmdString, args); // TODO: execv or execvp ?
+                    execvp(cmdString, args); 
                     exit(1);
                     break;
 					 
@@ -500,6 +512,7 @@ int ExeComp(char* lineSize, bool bg)
                     else
                     {
                         new_job.id = job_cnt++;
+                        new_job.timer = time(NULL);
                         new_job.is_fg = false;
                         jobs->push_back(new_job);
                         fg_job = &(jobs->back());
@@ -558,6 +571,7 @@ int BgCmd(char* lineSize)
 					 
 			default: // Parent Process
                     new_job.id = job_cnt++;
+                    new_job.timer = time(NULL);
                     new_job.cmd = cmd;
                     new_job.pid = pID;
                     new_job.is_running = true;

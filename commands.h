@@ -25,6 +25,7 @@ typedef struct job // TODO: add time
     pid_t pid;
     bool is_running;
     bool is_fg;
+    time_t timer;
 }job;
 
 

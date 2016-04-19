@@ -56,9 +56,6 @@ int main(int argc, char *argv[])
 
 	/************************************/
 	// Init globals 
-
-
-	
 	
     	while (1)
     	{
@@ -67,13 +64,10 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 		
-        if(!ExeComp(lineSize)) continue; 
-
 	 	if(!BgCmd(lineSize)) continue; 
-
+        if(!ExeComp(lineSize, false)) continue; 
 		ExeCmd(lineSize, cmdString);
 		
-		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdString[0]='\0';
 	}

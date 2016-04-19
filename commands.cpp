@@ -172,7 +172,8 @@ int ExeCmd(char* lineSize, char* cmdString)
 	{
         list<job>::iterator it_j = jobs->begin();
         for (it_j = jobs->begin() ; it_j != jobs->end() ; ++it_j)
- 	        cout << "[" << (*it_j).id << "] " << (*it_j).cmd << " " << (*it_j).pid << " " << (*it_j).is_fg << endl;	
+ 	        cout << "[" << (*it_j).id << "] " << (*it_j).cmd << " " 
+                 << (*it_j).pid << " " << ((*it_j).is_running ? "(running)" : "(stopped)")  << endl;	
 	}
 	/*************************************************/
 	else if (!strcmp(cmd, "showpid")) 
@@ -188,13 +189,15 @@ int ExeCmd(char* lineSize, char* cmdString)
 
         if (num_arg == 0)
         {
-            if (fg_job == NULL) // TODO: fix case when "fg 1" doesnt work
+            if (fg_job == NULL) 
             {
 				fprintf(stderr, "smash error: > no fg job\n");
                 return 1;
             }
-            fg_job->is_fg = true;
+            fg_job->is_running  = true;
+            fg_job->is_fg  = true;
             cout << fg_job->cmd << endl;
+            fprintf(stdout, "smash > signal SIGCONT was sent to %d\n", fg_job->pid);
 	        kill(fg_job->pid, SIGCONT);
             pause();
         }
@@ -204,9 +207,11 @@ int ExeCmd(char* lineSize, char* cmdString)
             list<job>::iterator itr = find_job(num);
             if (itr != jobs->end())
             {
-                (*itr).is_fg = true;
+                (*itr).is_running  = true;
+                (*itr).is_fg  = true;
                 cout << (*itr).cmd << endl;
                 fg_job = &(*itr);
+                fprintf(stdout, "smash > signal SIGCONT was sent to %d\n", fg_job->pid);
                 kill((*itr).pid, SIGCONT);
                 pause();
             }
@@ -227,8 +232,10 @@ int ExeCmd(char* lineSize, char* cmdString)
 				fprintf(stderr, "smash error: > no bg job\n");
                 return 1;
             }
-            fg_job->is_fg = true;
+            fg_job->is_running = true;
+            fg_job->is_fg = false;
             cout << fg_job->cmd << endl;
+            fprintf(stdout, "smash > signal SIGCONT was sent to %d\n", fg_job->pid);
 	        kill(fg_job->pid, SIGCONT);
         }
         else
@@ -237,9 +244,11 @@ int ExeCmd(char* lineSize, char* cmdString)
             list<job>::iterator itr = find_job(num);
             if (itr != jobs->end())
             {
-                (*itr).is_fg = true;
+                (*itr).is_running  = true;
+                (*itr).is_fg  = false;
                 cout << (*itr).cmd << endl;
                 fg_job = &(*itr);
+                fprintf(stdout, "smash > signal SIGCONT was sent to %d\n", fg_job->pid);
                 kill((*itr).pid, SIGCONT);
             }
             else
@@ -254,12 +263,41 @@ int ExeCmd(char* lineSize, char* cmdString)
         if (num_arg == 0)
         {
             shell_vars.clear();
+            jobs->clear();
             exit(0);
         }
-        
-        exit(0); // TODO: add support to "quit kill"
+        if (s_args[1] == "kill")
+        {
+            pid_t pid;
+            list<job>::iterator it, it1;
+            time_t sec1;
+            for( it = jobs->begin() ; it != jobs->end() ; it++)
+            {
+                pid = it->pid;
+                sec1 = time(NULL);
+	            kill(it->pid, SIGTERM);
 
-	} 
+                for ( ; ;)
+                {
+                    if ( time(NULL) - sec1 > 5)
+                    {
+                        break;
+                    }
+                }
+                for( it1 = jobs->begin() ; it1 != jobs->end() ; it1++)
+                {
+                    if (pid == it1->pid)
+                    {
+	                    kill(pid, 9);
+                        if (jobs->empty())
+                            return 0;
+                        break;
+                    }
+                }
+            }
+        }
+
+    } 
 	/*************************************************/
 	else if (!strcmp(cmd, "set")) 
 	{
@@ -329,6 +367,37 @@ int ExeCmd(char* lineSize, char* cmdString)
 	    }
     }
 	/*************************************************/
+    else if (!strcmp(cmd, "kill"))
+    {
+        if (num_arg < 2)
+        {   
+            fprintf(stderr, "smash error: > \"%s\" - not enough arguments\n", cmd); // TODO fix message
+            return 1;
+        }
+        int sig_num = atoi(s_args[1].c_str() + 1);
+        int job_number = atoi(s_args[2].c_str());
+        list<job>::iterator it = find_job(job_number);
+
+        if (it != jobs->end())
+        {
+            if(kill(it->pid, sig_num))
+            {
+                fprintf(stderr, "smash error: > kill job - cannot send signal\n"); // TODO fix message
+                return 1;
+            }
+            else
+                return 0;
+
+        }
+        else
+        {
+            fprintf(stderr, "smash error: > kill job - job does not exist\n"); // TODO fix message
+            return 1;
+        }
+
+
+    }
+	/*************************************************/
     else // external command
 	{
 		ExeExternal(args, cmd);
@@ -368,7 +437,8 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
                     new_job.id = 0;
                     new_job.cmd = cmd;
                     new_job.pid = pID;
-                    new_job.is_fg = 1;
+                    new_job.is_running = true;
+                    new_job.is_fg = true;
                     fg_job = &new_job;
                     pause();
 			        break;		
@@ -384,29 +454,25 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString)
 // Returns: 0- if complicated -1- if not
 //**************************************************************************************
 
-int ExeComp(char* lineSize)
+int ExeComp(char* lineSize, bool bg)
 {
 	pid_t pID;
 	char ExtCmd[MAX_LINE_SIZE+2];
 	char *args[MAX_ARG];
+    char arg1[MAX_LINE_SIZE] = "csh";
+    char arg2[MAX_LINE_SIZE] = "-f";
+    char arg3[MAX_LINE_SIZE] = "-c";
     char cmdString[MAX_LINE_SIZE];
     if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || 
         (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
-    {
-/*
-        ExtCmd[0] = '"';
-        strcpy(ExtCmd+1,lineSize);
-        ExtCmd[strlen(lineSize)] = '"';
-        ExtCmd[strlen(lineSize) + 1] = '\0';
-*/
+    {   
         strcpy(cmdString, lineSize);
 		cmdString[strlen(lineSize)-1]='\0';
-        strcpy(args[0], "csh"); //TODO: should add '\0' in the end of each line?
-        strcpy(args[1], "-f");
-        strcpy(args[2], "-c");
-        strcpy(args[3], cmdString);
+        args[0] = arg1;
+        args[1] = arg2;
+        args[2] = arg3;
+        args[3] = cmdString;
         args[4] = NULL;
-
 
         switch(pID = fork()) 
 	    {
@@ -424,9 +490,20 @@ int ExeComp(char* lineSize)
                     new_job.id = 0;
                     new_job.cmd = cmdString;
                     new_job.pid = pID;
-                    new_job.is_fg = 1;
+                    new_job.is_running = true;
                     fg_job = &new_job;
-                    pause();
+                    if (bg == false)
+                    {
+                        new_job.is_fg = true;
+                        pause();
+                    }
+                    else
+                    {
+                        new_job.id = job_cnt++;
+                        new_job.is_fg = false;
+                        jobs->push_back(new_job);
+                        fg_job = &(jobs->back());
+                    }
 			        break;		
 	    }
 	    return 0;
@@ -448,11 +525,14 @@ int BgCmd(char* lineSize)
 	char* delimiters = " \t\n";
 	char *args[MAX_ARG];
     int num_arg = 0;
-    job new_job;
 
 	if (lineSize[strlen(lineSize)-2] == '&')
 	{
 		lineSize[strlen(lineSize)-2] = '\0';
+
+        if(!ExeComp(lineSize, true))
+            return 0;
+
         cmd = strtok(lineSize, delimiters);
 	    if (cmd == NULL)
 		    return 0; 
@@ -480,7 +560,8 @@ int BgCmd(char* lineSize)
                     new_job.id = job_cnt++;
                     new_job.cmd = cmd;
                     new_job.pid = pID;
-                    new_job.is_fg = 1;
+                    new_job.is_running = true;
+                    new_job.is_fg = false;
                     jobs->push_back(new_job);
                     fg_job = &(jobs->back());
 			        break;	

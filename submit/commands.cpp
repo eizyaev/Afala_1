@@ -579,7 +579,7 @@ int BgCmd(char* lineSize)
     list<Vars>::iterator it;
     pid_t pID;
 	char* cmd;
-	char* delimiters = " \t\n";
+	const char* delimiters = " \t\n";
 	char *args[MAX_ARG];
     int num_arg = 0, i;
 

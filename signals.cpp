@@ -1,5 +1,5 @@
 // signals.c
-// contains signal handler funtions
+// contains signal handler functions
 // contains the function/s that set the signal handlers
 
 /*******************************************/
@@ -11,15 +11,17 @@
 void signal_handle(int signal) 
 {
     list<job>::iterator it;
-    if (fg_job != NULL && fg_job->is_fg == true)
+    if (fg_job != NULL && fg_job->is_fg == true)	// Checking if the last job we opened still exists & if it runs in fg //
     {
         switch(signal)
         {
-            case (SIGTSTP): // CTR-Z
-                fprintf(stdout, "smash > signal SIGTSTP was sent to %d\n", fg_job->pid); // TODO fix message
-	            kill(fg_job->pid,SIGTSTP);
+            case (SIGTSTP):	// CTRL-Z //
+                fprintf(stdout, "smash > signal SIGTSTP was sent to %d\n", fg_job->pid);	// TODO - fix message //
+	            kill(fg_job->pid,SIGTSTP);	// Send SIGTSTP to the fg job //
                 fg_job->is_running = false;
                 fg_job->is_fg = false;
+
+				/* Searching for the job within job list, adding it to list if it isn't there */
                 for( it = jobs->begin() ; it != jobs->end() ; it++)
                     if ((*it).pid == fg_job->pid)
                         break;
@@ -32,9 +34,9 @@ void signal_handle(int signal)
                 }
 
                 break;
-            case (SIGINT): // CTR-C
+            case (SIGINT):	// CTRL-C //
                     fg_job->is_fg = false;
-                    fprintf(stdout, "smash > signal SIGINT was sent to %d\n", fg_job->pid); // TODO fix message
+                    fprintf(stdout, "smash > signal SIGINT was sent to %d\n", fg_job->pid);	// TODO - fix message //
 	                kill(fg_job->pid,SIGINT);
                 break;
             default:
@@ -45,14 +47,16 @@ void signal_handle(int signal)
 
 void child_handle(int signal)
 {
-    pid_t pid = waitpid(-1, NULL, WNOHANG);
+    pid_t pid = waitpid(-1, NULL, WNOHANG);	// Checking if any child process has terminated //
     if (pid > 0)
     {
+		/* Checking if we're handling fg job */
         if (fg_job != NULL && fg_job->pid == pid)
             fg_job = NULL;
     }
     while(pid > 0)
     {       
+		/* Erasing the child process from the job list */
         list<job>::iterator it;
         for( it = jobs->begin() ; it != jobs->end() ; it++)
         {
@@ -62,7 +66,6 @@ void child_handle(int signal)
                 break;
             }
         }
-        pid = waitpid(-1, NULL, WNOHANG);
+        pid = waitpid(-1, NULL, WNOHANG);	// Checking if any child process has terminated //
     }
 }
-

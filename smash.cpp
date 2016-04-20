@@ -13,10 +13,10 @@ main file. This file contains the main function of smash
 #define MAX_LINE_SIZE 80
 #define MAXARGS 20
 
-job new_job;
-job* fg_job = NULL;
-int job_cnt = 1;
-list<job> *jobs; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
+job new_job;	// Helper job struct for handling jobs before storing them in job list //
+job* fg_job = NULL;	// Pointer to the most current job we ran //
+int job_cnt = 1;	// Counter to keep track of job ammount & numbering the jobs in job list //
+list<job> *jobs;	// Job list //
 char lineSize[MAX_LINE_SIZE]; 
 //**************************************************************************************
 // function name: main
@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
 {
     char cmdString[MAX_LINE_SIZE]; 	   
     jobs = new list<job>;
+
+	/* Adjusting new handlers for SIGTSTP, SIGINT & SIGCHLD */
     struct sigaction sa;
     sa.sa_handler = &signal_handle;
     sa.sa_flags = SA_RESTART;
@@ -43,19 +45,6 @@ int main(int argc, char *argv[])
         perror("Error: cannot handle SIGINT");
 
     signal (SIGCHLD, &child_handle);
-    	//signal declaretions
-	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
-	 /* add your code here */
-	
-	/************************************/
-	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
-	//set your signal handlers here
-	/* add your code here */
-
-	/************************************/
-
-	/************************************/
-	// Init globals 
 	
     	while (1)
     	{
@@ -64,9 +53,9 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 		
-	 	if(!BgCmd(lineSize)) continue; 
-        if(!ExeComp(lineSize, false)) continue; 
-		ExeCmd(lineSize, cmdString);
+	 	if(!BgCmd(lineSize)) continue;	// Checking if CMD is bg CMD, executing if it is (can be a complicated bg CMD) //
+        if(!ExeComp(lineSize, false)) continue;		// Checking if CMD is complicated+not bg CMD, executing if it is //
+		ExeCmd(lineSize, cmdString);	// Executing built-in/external CMD //
 		
 		lineSize[0]='\0';
 		cmdString[0]='\0';

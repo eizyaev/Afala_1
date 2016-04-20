@@ -16,7 +16,7 @@ void signal_handle(int signal)
         switch(signal)
         {
             case (SIGTSTP):	// CTRL-Z //
-                fprintf(stdout, "smash > signal SIGTSTP was sent to %d\n", fg_job->pid);	// TODO - fix message //
+                fprintf(stdout, "smash > signal SIGTSTP was sent to %d\n", fg_job->pid);
 	            kill(fg_job->pid,SIGTSTP);	// Send SIGTSTP to the fg job //
                 fg_job->is_running = false;
                 fg_job->is_fg = false;
@@ -36,7 +36,7 @@ void signal_handle(int signal)
                 break;
             case (SIGINT):	// CTRL-C //
                     fg_job->is_fg = false;
-                    fprintf(stdout, "smash > signal SIGINT was sent to %d\n", fg_job->pid);	// TODO - fix message //
+                    fprintf(stdout, "smash > signal SIGINT was sent to %d\n", fg_job->pid);	
 	                kill(fg_job->pid,SIGINT);
                 break;
             default:
@@ -69,3 +69,4 @@ void child_handle(int signal)
         pid = waitpid(-1, NULL, WNOHANG);	// Checking if any child process has terminated //
     }
 }
+
